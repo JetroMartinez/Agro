@@ -85,20 +85,71 @@ class SalesFragment : Fragment() {
     }
 
     private fun showPaymentDialog() {
-        val methods = arrayOf("Efectivo", "Tarjeta de Débito", "Tarjeta de Crédito", "Transferencia")
-        AlertDialog.Builder(requireContext())
-            .setTitle("Confirmar Venta")
-            .setMessage("Total a pagar: ${binding.txtTotal.text}")
-            .setItems(methods) { _, which ->
-                val selectedMethod = methods[which]
-                viewModel.checkout(selectedMethod)
-                Toast.makeText(context, "Venta registrada con éxito", Toast.LENGTH_LONG).show()
-                binding.searchView.setQuery("", false)
-                binding.searchView.clearFocus()
+        // 1. Obtener datos del carrito para construir el recibo
+        val currentCart = viewModel.cartFlow.value
+        val allProducts = adapter.productList // Obtenemos la lista completa del adapter actual
+        val checkoutItems = ArrayList<CheckoutItem>()
+        var calculatedTotal = 0.0
+
+        currentCart.forEach { (id, qty) ->
+            val product = allProducts.find { it.id == id }
+            if (product != null) {
+                val subtotal = product.price * qty
+                calculatedTotal += subtotal
+                checkoutItems.add(CheckoutItem(product.name ?: "Sin nombre", qty, product.price, subtotal))
             }
-            .setNegativeButton("Cancelar", null)
-            .show()
+        }
+
+        // Si el carrito está vacío (por seguridad), no abrir
+        if (checkoutItems.isEmpty()) return
+
+        // 2. Inflar el diseño del Ticket
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_checkout, null)
+
+        // 3. Configurar el RecyclerView del Ticket
+        val recyclerCheckout = dialogView.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.recyclerCheckout)
+        recyclerCheckout.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+        recyclerCheckout.adapter = CheckoutAdapter(checkoutItems)
+
+        // 4. Poner el Total
+        val txtFinalTotal = dialogView.findViewById<android.widget.TextView>(R.id.txtFinalTotal)
+        txtFinalTotal.text = "$${String.format("%.2f", calculatedTotal)}"
+
+        // 5. Crear el Dialog (sin botones default)
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        // Fondo transparente para que se vean las esquinas redondeadas del CardView
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        // 6. Lógica de Botones del Ticket
+        val btnCancel = dialogView.findViewById<android.widget.Button>(R.id.btnCancel)
+        val btnConfirm = dialogView.findViewById<android.widget.Button>(R.id.btnConfirmSale)
+        val radioGroup = dialogView.findViewById<android.widget.RadioGroup>(R.id.radioGroupPayment)
+
+        btnCancel.setOnClickListener { dialog.dismiss() }
+
+        btnConfirm.setOnClickListener {
+            // Obtener método de pago seleccionado
+            val selectedId = radioGroup.checkedRadioButtonId
+            val paymentMethod = if (selectedId == R.id.rbCard) "Tarjeta" else "Efectivo"
+
+            // Llamar al ViewModel para guardar en BD y restar stock
+            viewModel.checkout(paymentMethod)
+
+            Toast.makeText(context, "¡Venta Exitosa!", Toast.LENGTH_LONG).show()
+
+            // Limpiezas visuales
+            binding.searchView.setQuery("", false)
+            binding.searchView.clearFocus()
+
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

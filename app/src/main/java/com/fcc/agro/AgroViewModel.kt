@@ -173,4 +173,28 @@ class AgroViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
+    fun updateProduct(id: Int, name: String, price: Double, pPrice: Double, stock: Int, unit: String, exp: String, imgUri: String?) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val values = ContentValues()
+            values.put(AgroDBHandler.COLUMN_NAME, name)
+            values.put(AgroDBHandler.COLUMN_PRICE, price)
+            values.put(AgroDBHandler.COLUMN_PURCHASE_PRICE, pPrice)
+            values.put(AgroDBHandler.COLUMN_STOCK, stock)
+            values.put(AgroDBHandler.COLUMN_UNIT, unit)
+            values.put(AgroDBHandler.COLUMN_EXPIRATION, exp)
+            // Solo actualizamos la imagen si el usuario tomó una nueva (si no es null)
+            if (imgUri != null) {
+                values.put(AgroDBHandler.COLUMN_IMAGE, imgUri)
+            }
+
+            val selection = "${AgroDBHandler.COLUMN_ID} = ?"
+            val selectionArgs = arrayOf(id.toString())
+
+            getApplication<Application>().contentResolver.update(
+                AgroProvider.CONTENT_URI, values, selection, selectionArgs
+            )
+            loadProducts() // Recargar lista para ver cambios
+        }
+    }
 }
