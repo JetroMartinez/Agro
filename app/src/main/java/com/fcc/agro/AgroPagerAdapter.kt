@@ -6,14 +6,20 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 
 class AgroPagerAdapter(fa: FragmentActivity) : FragmentStateAdapter(fa) {
 
-    override fun getItemCount(): Int = 3 // Tenemos 3 pestañas
+    override fun getItemCount(): Int = 3
 
     override fun createFragment(position: Int): Fragment {
         return when (position) {
-            0 -> SalesFragment()      // Pestaña 1: Ventas
-            1 -> InventoryFragment()  // Pestaña 2: Inventario
-            2 -> PriceListFragment()  // Pestaña 3: Precios
-            else -> SalesFragment()
+            // CAMBIO AQUÍ: Posición 0 ahora es Precios
+            0 -> PriceListFragment()
+
+            // Posición 1 se queda igual (Inventario en medio)
+            1 -> InventoryFragment()
+
+            // CAMBIO AQUÍ: Posición 2 ahora es Ventas
+            2 -> SalesFragment()
+
+            else -> PriceListFragment() // Por defecto regresamos el primero
         }
     }
 }

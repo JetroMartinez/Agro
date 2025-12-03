@@ -12,7 +12,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager // Importante
 import com.fcc.agro.databinding.FragmentSalesBinding
 import kotlinx.coroutines.launch
 
@@ -20,35 +20,29 @@ class SalesFragment : Fragment() {
 
     private var _binding: FragmentSalesBinding? = null
     private val binding get() = _binding!!
-
     private lateinit var viewModel: AgroViewModel
     private lateinit var adapter: SalesAdapter
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSalesBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        // 1. Usar requireActivity() para compartir el estado del carrito entre pestañas
         viewModel = ViewModelProvider(requireActivity())[AgroViewModel::class.java]
 
-        // 2. Inicializar el SalesAdapter (¡NO el ProductAdapter!)
-        // Le pasamos lista vacía y mapa vacío al inicio.
-        // El callback { product, newQty -> ... } le avisa al ViewModel que actualice el carrito.
+        // Inicializar Adapter
         adapter = SalesAdapter(emptyList(), emptyMap()) { product, newQty ->
             viewModel.updateCart(product, newQty)
         }
 
-        binding.recyclerSales.layoutManager = LinearLayoutManager(context)
+        // --- CORRECCIÓN AQUÍ ---
+        // Usamos GridLayoutManager con 2 columnas para que se vea cuadrado
+        binding.recyclerSales.layoutManager = GridLayoutManager(context, 2)
         binding.recyclerSales.adapter = adapter
 
-        // 3. Configurar el Buscador
+        // Configurar Búsqueda
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean = false
             override fun onQueryTextChange(newText: String?): Boolean {
@@ -57,55 +51,48 @@ class SalesFragment : Fragment() {
             }
         })
 
-        // 4. Configurar el Botón de Cobrar
+        // Botón Cobrar
         binding.btnPay.setOnClickListener {
             showPaymentDialog()
         }
 
-        // 5. Observar los datos (Reactividad)
+        // Observar DATOS (Productos y Carrito)
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-
-                // A) Observar lista de productos (filtrada o completa)
+                // 1. Observar cambios en la lista de productos (para llenar el grid)
                 launch {
                     viewModel.productsFlow.collect { products ->
                         adapter.updateList(products)
                     }
                 }
-
-                // B) Observar cambios en el carrito (para actualizar los números en la lista)
+                // 2. Observar cambios en el carrito (para los números 0, 1, 2...)
                 launch {
                     viewModel.cartFlow.collect { cart ->
                         adapter.updateCartData(cart)
                     }
                 }
-
-                // C) Observar el Total a Pagar
+                // 3. Observar Total
                 launch {
                     viewModel.totalFlow.collect { total ->
                         binding.txtTotal.text = "Total: $${String.format("%.2f", total)}"
-                        binding.btnPay.isEnabled = total > 0 // Solo habilitar si hay algo que cobrar
+                        binding.btnPay.isEnabled = total > 0
                     }
                 }
             }
         }
 
-        // Cargar productos al iniciar
         viewModel.loadProducts()
     }
 
     private fun showPaymentDialog() {
         val methods = arrayOf("Efectivo", "Tarjeta de Débito", "Tarjeta de Crédito", "Transferencia")
         AlertDialog.Builder(requireContext())
-            .setTitle("Seleccione Método de Pago")
+            .setTitle("Confirmar Venta")
+            .setMessage("Total a pagar: ${binding.txtTotal.text}")
             .setItems(methods) { _, which ->
                 val selectedMethod = methods[which]
-                // Llamamos al checkout del ViewModel para guardar venta y descontar stock
                 viewModel.checkout(selectedMethod)
-
                 Toast.makeText(context, "Venta registrada con éxito", Toast.LENGTH_LONG).show()
-
-                // Limpiar búsqueda y cerrar teclado si es necesario
                 binding.searchView.setQuery("", false)
                 binding.searchView.clearFocus()
             }

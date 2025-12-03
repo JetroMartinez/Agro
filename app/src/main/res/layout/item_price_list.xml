@@ -1,62 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="4dp"
+    android:layout_margin="6dp"
     app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    app:cardElevation="3dp">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="12dp">
+        android:padding="8dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <ImageView
+            android:id="@+id/imgProductThumb"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:scaleType="centerCrop"
+            android:src="@android:drawable/ic_menu_gallery"
+            android:background="#EEEEEE"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <TextView
+            android:id="@+id/txtProductName"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            tools:text="Fertilizante Premium"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            app:layout_constraintStart_toEndOf="@id/imgProductThumb"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnEdit"/> <ImageButton
+        android:id="@+id/btnEdit"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@android:drawable/ic_menu_edit"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:visibility="gone"
+        app:tint="#757575"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
 
-            <TextView
-                android:id="@+id/txtProductName"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:text="Nombre Producto"
-                android:textSize="18sp"
-                android:textStyle="bold"  android:layout_height="30sp"/>
-
-            <TextView
-                android:id="@+id/txtPrice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="$0.00"
-                android:textSize="18sp"
-                android:textColor="#4CAF50"
-                android:textStyle="bold"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/txtPrice"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            tools:text="$150.00"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#4CAF50"
+            app:layout_constraintStart_toEndOf="@id/imgProductThumb"
+            app:layout_constraintTop_toBottomOf="@id/txtProductName"/>
+
+        <TextView
+            android:id="@+id/txtDetails"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="2dp"
+            tools:text="Litro | Cad: 12/12/2025"
+            android:textSize="13sp"
+            android:textColor="#616161"
+            app:layout_constraintStart_toEndOf="@id/imgProductThumb"
+            app:layout_constraintTop_toBottomOf="@id/txtPrice"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <TextView
+            android:id="@+id/txtAvailability"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
             android:layout_marginTop="4dp"
-            android:orientation="horizontal">
+            tools:text="EN STOCK (50)"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="#1976D2"
+            app:layout_constraintStart_toEndOf="@id/imgProductThumb"
+            app:layout_constraintTop_toBottomOf="@id/txtDetails"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
-            <TextView
-                android:id="@+id/txtDetails"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:text="Unidad: Litro | Caduca: 01/01/2026"
-                android:textColor="#757575" android:layout_height="30dp"/>
-
-            <TextView
-                android:id="@+id/txtAvailability"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="AGOTADO"
-                android:textStyle="bold"
-                android:visibility="gone"
-                android:textColor="#F44336"/> </LinearLayout>
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>
